@@ -1,25 +1,13 @@
 import { useMemo } from 'react'
 import type { ShotRecord } from '../utils/csvParser'
 
-// One distinct color per club
 const CLUB_COLORS: Record<string, string> = {
-  DR: '#60A5FA',  // blue
-  W3: '#22D3EE',  // cyan
-  W5: '#6EE7B7',  // teal
-  H3: '#4ADE80',  // green
-  H4: '#86EFAC',
-  H5: '#BBF7D0',
-  I3: '#FCD34D',  // yellow
-  I4: '#FBBF24',  // amber
-  I5: '#FB923C',  // orange
-  I6: '#F87171',  // red
-  I7: '#F472B6',  // pink
-  I8: '#C084FC',  // purple
-  I9: '#A78BFA',  // violet
-  PW: '#818CF8',  // indigo
-  GW: '#E879F9',  // fuchsia
-  SW: '#FB7185',  // rose
-  LW: '#FDE68A',  // pale yellow
+  DR: '#60A5FA', W3: '#22D3EE', W5: '#6EE7B7',
+  H3: '#4ADE80', H4: '#86EFAC', H5: '#BBF7D0',
+  I3: '#FCD34D', I4: '#FBBF24', I5: '#FB923C',
+  I6: '#F87171', I7: '#F472B6', I8: '#C084FC',
+  I9: '#A78BFA', PW: '#818CF8', GW: '#E879F9',
+  SW: '#FB7185', LW: '#FDE68A',
 }
 
 const CLUB_ABBREV: Record<string, string> = {
@@ -36,24 +24,53 @@ function mean(nums: number[]) {
   return nums.reduce((a, b) => a + b, 0) / nums.length
 }
 
-function stdDev(nums: number[]) {
-  if (nums.length < 2) return 0
-  const m = mean(nums)
-  return Math.sqrt(nums.reduce((s, v) => s + (v - m) ** 2, 0) / nums.length)
+interface EllipseParams {
+  cx: number; cy: number
+  rx: number; ry: number
+  angleDeg: number
+}
+
+// PCA on screen-space points → rotated ellipse that wraps the actual visual scatter
+function fitEllipse(xs: number[], ys: number[]): EllipseParams {
+  const n  = xs.length
+  const mx = mean(xs)
+  const my = mean(ys)
+
+  let cxx = 0, cyy = 0, cxy = 0
+  for (let i = 0; i < n; i++) {
+    const dx = xs[i] - mx
+    const dy = ys[i] - my
+    cxx += dx * dx
+    cyy += dy * dy
+    cxy += dx * dy
+  }
+  cxx /= n; cyy /= n; cxy /= n
+
+  // Rotation angle of the major axis via half-angle formula
+  const angleDeg = (0.5 * Math.atan2(2 * cxy, cxx - cyy)) * (180 / Math.PI)
+
+  // Eigenvalues = semi-axis variances
+  const term   = Math.sqrt(Math.max(0, ((cxx - cyy) / 2) ** 2 + cxy ** 2))
+  const lam1   = (cxx + cyy) / 2 + term   // major
+  const lam2   = (cxx + cyy) / 2 - term   // minor
+
+  const SCALE  = 1.75   // ~1.75σ covers ~92% of bivariate-normal data
+  const rx     = Math.max(SCALE * Math.sqrt(Math.max(lam1, 0)), 9)
+  const ry     = Math.max(SCALE * Math.sqrt(Math.max(lam2, 0)), 5)
+
+  return { cx: mx, cy: my, rx, ry, angleDeg }
 }
 
 export function ShotDispersionChart({ shots }: { shots: ShotRecord[] }) {
-  // SVG canvas
   const VW = 280
   const VH = 460
   const PAD = { top: 24, right: 46, bottom: 28, left: 20 }
-  const CW  = VW - PAD.left - PAD.right   // 214
-  const CH  = VH - PAD.top  - PAD.bottom  // 408
+  const CW  = VW - PAD.left - PAD.right
+  const CH  = VH - PAD.top  - PAD.bottom
 
   const { carryMax, offlineMax, distanceMarks, byClub, clubsPresent } = useMemo(() => {
     const carries  = shots.map(s => s.carry)
     const offlines = shots.map(s => s.offline)
-
     const carryMax   = Math.max(Math.ceil(Math.max(...carries)  / 50) * 50, 100)
     const offlineAbs = Math.max(Math.abs(Math.min(...offlines)), Math.abs(Math.max(...offlines)))
     const offlineMax = Math.max(Math.ceil(offlineAbs / 10) * 10, 20)
@@ -67,39 +84,41 @@ export function ShotDispersionChart({ shots }: { shots: ShotRecord[] }) {
       arr.push(s)
       byClub.set(s.club, arr)
     }
-
     const clubsPresent = [...byClub.keys()].sort(
       (a, b) => BAG_ORDER.indexOf(a) - BAG_ORDER.indexOf(b)
     )
-
     return { carryMax, offlineMax, distanceMarks, byClub, clubsPresent }
   }, [shots])
 
-  // Coordinate transforms — origin at bottom-centre
   const toX = (offline: number) =>
     PAD.left + ((offline + offlineMax) / (2 * offlineMax)) * CW
-
   const toY = (carry: number) =>
     PAD.top + (1 - carry / carryMax) * CH
 
   const centerX = toX(0)
 
+  // Pre-compute PCA ellipses in screen coordinates
+  const ellipses = useMemo(() =>
+    clubsPresent.map(club => {
+      const cs = byClub.get(club)!
+      const xs = cs.map(s => toX(s.offline))
+      const ys = cs.map(s => toY(s.carry))
+      return { club, color: CLUB_COLORS[club] ?? '#fff', ...fitEllipse(xs, ys) }
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [clubsPresent, byClub, carryMax, offlineMax]
+  )
+
   return (
     <div className="rounded-xl overflow-hidden">
-      <svg
-        viewBox={`0 0 ${VW} ${VH}`}
-        className="w-full"
-        style={{ background: '#080d0a' }}
-      >
+      <svg viewBox={`0 0 ${VW} ${VH}`} className="w-full" style={{ background: '#080d0a' }}>
         <defs>
-          {/* Soft fairway glow down the center */}
           <radialGradient id="fairwayGlow" cx="50%" cy="60%" r="30%">
             <stop offset="0%"   stopColor="#1a3320" stopOpacity="0.7" />
             <stop offset="100%" stopColor="#080d0a" stopOpacity="0"   />
           </radialGradient>
         </defs>
 
-        {/* Fairway glow */}
         <rect x="0" y="0" width={VW} height={VH} fill="url(#fairwayGlow)" />
 
         {/* Fairway strip */}
@@ -111,120 +130,107 @@ export function ShotDispersionChart({ shots }: { shots: ShotRecord[] }) {
 
         {/* Distance arc lines */}
         {distanceMarks.map(d => {
-          const y = toY(d)
-          // Slight arc: quadratic bezier drooping toward tee
+          const y   = toY(d)
           const sag = (d / carryMax) * 6
-          const d1  = PAD.left
-          const d2  = VW - PAD.right
-          const mx  = (d1 + d2) / 2
+          const mx  = (PAD.left + VW - PAD.right) / 2
           return (
             <g key={d}>
               <path
-                d={`M ${d1} ${y} Q ${mx} ${y + sag} ${d2} ${y}`}
-                fill="none"
-                stroke="rgba(255,255,255,0.07)"
-                strokeWidth="0.75"
+                d={`M ${PAD.left} ${y} Q ${mx} ${y + sag} ${VW - PAD.right} ${y}`}
+                fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="0.75"
               />
               <text
                 x={VW - PAD.right + 4} y={y + 3.5}
-                fill="rgba(255,255,255,0.35)"
-                fontSize="8"
+                fill="rgba(255,255,255,0.35)" fontSize="8"
                 fontFamily="DM Sans, sans-serif"
-              >
-                {d}y
-              </text>
+              >{d}y</text>
             </g>
           )
         })}
 
         {/* Target line */}
         <line
-          x1={centerX} y1={PAD.top}
-          x2={centerX} y2={PAD.top + CH}
-          stroke="rgba(255,255,255,0.15)"
-          strokeWidth="0.75"
-          strokeDasharray="3,5"
+          x1={centerX} y1={PAD.top} x2={centerX} y2={PAD.top + CH}
+          stroke="rgba(255,255,255,0.15)" strokeWidth="0.75" strokeDasharray="3,5"
         />
 
-        {/* Dispersion ellipses (drawn first so dots sit on top) */}
-        {clubsPresent.map(club => {
-          const cs     = byClub.get(club)!
-          const color  = CLUB_COLORS[club] ?? '#fff'
-          const offs   = cs.map(s => s.offline)
-          const cars   = cs.map(s => s.carry)
-          const cx     = toX(mean(offs))
-          const cy     = toY(mean(cars))
-
-          // 1.5-sigma ellipse, minimum size enforced
-          const sdOff  = Math.max(stdDev(offs), 2)
-          const sdCar  = Math.max(stdDev(cars), 3)
-          const rx     = Math.max((sdOff * 1.5) / (2 * offlineMax) * CW, 8)
-          const ry     = Math.max((sdCar * 1.5) / carryMax * CH, 12)
-
-          return (
-            <ellipse
-              key={club}
-              cx={cx} cy={cy} rx={rx} ry={ry}
-              fill="none"
-              stroke={color}
-              strokeWidth="1.25"
-              opacity="0.55"
-            />
-          )
-        })}
+        {/* Rotated dispersion ellipses */}
+        {ellipses.map(({ club, color, cx, cy, rx, ry, angleDeg }) => (
+          <ellipse
+            key={club}
+            cx={cx} cy={cy} rx={rx} ry={ry}
+            transform={`rotate(${angleDeg}, ${cx}, ${cy})`}
+            fill="none"
+            stroke={color}
+            strokeWidth="1.25"
+            opacity="0.6"
+          />
+        ))}
 
         {/* Shot dots */}
         {shots.map((shot, i) => (
           <circle
             key={i}
-            cx={toX(shot.offline)}
-            cy={toY(shot.carry)}
+            cx={toX(shot.offline)} cy={toY(shot.carry)}
             r="2.5"
             fill={CLUB_COLORS[shot.club] ?? '#fff'}
             opacity="0.9"
           />
         ))}
 
-        {/* Club labels above each ellipse */}
-        {clubsPresent.map(club => {
-          const cs    = byClub.get(club)!
-          const color = CLUB_COLORS[club] ?? '#fff'
-          const offs  = cs.map(s => s.offline)
-          const cars  = cs.map(s => s.carry)
-          const cx    = toX(mean(offs))
-          const cy    = toY(mean(cars))
-          const sdCar = Math.max(stdDev(cars), 3)
-          const ry    = Math.max((sdCar * 1.5) / carryMax * CH, 12)
-
-          return (
-            <text
-              key={`lbl-${club}`}
-              x={cx} y={cy - ry - 4}
-              textAnchor="middle"
-              fill={color}
-              fontSize="7.5"
-              fontWeight="600"
-              fontFamily="DM Sans, sans-serif"
-              opacity="0.9"
-            >
-              {CLUB_ABBREV[club] ?? club}
-            </text>
-          )
-        })}
-
         {/* Offline scale */}
         {([-offlineMax * 0.5, offlineMax * 0.5] as number[]).map(v => (
           <text
-            key={v}
-            x={toX(v)} y={VH - 6}
+            key={v} x={toX(v)} y={VH - 6}
             textAnchor="middle"
-            fill="rgba(255,255,255,0.22)"
-            fontSize="7"
+            fill="rgba(255,255,255,0.22)" fontSize="7"
             fontFamily="DM Sans, sans-serif"
           >
             {Math.round(Math.abs(v))}y {v < 0 ? 'L' : 'R'}
           </text>
         ))}
+
+        {/* Legend — bottom-left, 3 columns */}
+        {(() => {
+          const cols     = 3
+          const rowH     = 10
+          const colW     = 30
+          const padX     = 5
+          const padY     = 5
+          const rows     = Math.ceil(clubsPresent.length / cols)
+          const boxW     = cols * colW + padX * 2
+          const boxH     = rows * rowH + padY * 2
+          const bx       = PAD.left + 2
+          const by       = PAD.top + CH - boxH - 2
+
+          return (
+            <g>
+              <rect
+                x={bx} y={by} width={boxW} height={boxH}
+                rx="3" fill="rgba(0,0,0,0.55)"
+              />
+              {clubsPresent.map((club, i) => {
+                const col  = i % cols
+                const row  = Math.floor(i / cols)
+                const x    = bx + padX + col * colW
+                const y    = by + padY + row * rowH + 6
+                const color = CLUB_COLORS[club] ?? '#fff'
+                return (
+                  <g key={`leg-${club}`}>
+                    <circle cx={x + 3} cy={y - 2} r="2.5" fill={color} />
+                    <text
+                      x={x + 8} y={y}
+                      fill="rgba(255,255,255,0.75)"
+                      fontSize="6.5" fontFamily="DM Sans, sans-serif"
+                    >
+                      {CLUB_ABBREV[club] ?? club}
+                    </text>
+                  </g>
+                )
+              })}
+            </g>
+          )
+        })()}
       </svg>
     </div>
   )

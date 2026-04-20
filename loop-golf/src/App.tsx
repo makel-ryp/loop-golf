@@ -9,6 +9,7 @@ import ForgotPassword from './pages/ForgotPassword'
 import Onboarding from './pages/Onboarding'
 import Quiz from './pages/Quiz'
 import Learn from './pages/Learn'
+import Glossary from './pages/Glossary'
 import Practice from './pages/Practice'
 import Play from './pages/Play'
 
@@ -26,9 +27,10 @@ export default function App() {
 
           {/* Main app — tabbed layout */}
           <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
-            <Route path="/learn"    element={<Learn />} />
-            <Route path="/practice" element={<Practice />} />
-            <Route path="/play"     element={<Play />} />
+            <Route path="/learn"     element={<Learn />} />
+            <Route path="/glossary"  element={<Glossary />} />
+            <Route path="/practice"  element={<Practice />} />
+            <Route path="/play"      element={<Play />} />
           </Route>
 
           {/* Legacy redirects */}

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 const modules = [
   {
@@ -41,11 +42,29 @@ const modules = [
 
 export default function Learn() {
   const [active, setActive] = useState<string | null>(null)
+  const navigate = useNavigate()
 
   return (
     <div className="px-5 pt-10 pb-4 max-w-lg mx-auto">
       <h1 className="font-sans font-semibold text-2xl text-ryp-black tracking-tight mb-1">Learn</h1>
       <p className="text-sm text-ryp-mid mb-7">Work through each module at your own pace.</p>
+
+      {/* Glossary quick-access */}
+      <button
+        onClick={() => navigate('/glossary')}
+        className="w-full flex items-center justify-between px-5 py-4 mb-5 bg-ryp-black text-white rounded-xl hover:bg-ryp-black/90 transition-colors"
+      >
+        <div className="flex items-center gap-3">
+          <span className="text-xl">📚</span>
+          <div className="text-left">
+            <div className="font-semibold text-sm">Golf Glossary</div>
+            <div className="text-xs text-white/60 mt-0.5">124 terms — search and study at your own pace</div>
+          </div>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="opacity-60">
+          <path d="M6 4l4 4-4 4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
 
       <div className="flex flex-col gap-3">
         {modules.map((mod) => (
