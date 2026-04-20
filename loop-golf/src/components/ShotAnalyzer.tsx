@@ -17,14 +17,17 @@ export function ShotAnalyzer({ userId, knowledgeScore = 0, onSaved }: ShotAnalyz
   const [error, setError]         = useState('')
   const [saving, setSaving]       = useState(false)
   const [savedId, setSavedId]     = useState<string | null>(null)
+  const [dragging, setDragging]   = useState(false)
 
   const sevenIronCarry = summaries.length > 0 ? getSevenIronCarry(summaries) : null
   const readiness      = summaries.length > 0 ? calcReadiness(summaries, knowledgeScore) : null
   const courseRec      = sevenIronCarry != null ? recommendCourseLength(sevenIronCarry) : null
 
-  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
+  async function processFile(file: File) {
+    if (!file.name.endsWith('.csv')) {
+      setError('Please upload a .csv file exported from GSPro.')
+      return
+    }
     setError('')
     setSavedId(null)
     setFileName(file.name)
@@ -35,6 +38,35 @@ export function ShotAnalyzer({ userId, knowledgeScore = 0, onSaved }: ShotAnalyz
       setError(err instanceof Error ? err.message : 'Failed to parse file.')
       setSummaries([])
     }
+  }
+
+  function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (file) processFile(file)
+  }
+
+  function handleDragOver(e: React.DragEvent) {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'copy'
+  }
+
+  function handleDragEnter(e: React.DragEvent) {
+    e.preventDefault()
+    setDragging(true)
+  }
+
+  function handleDragLeave(e: React.DragEvent) {
+    // only clear when leaving the zone itself, not a child element
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setDragging(false)
+    }
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault()
+    setDragging(false)
+    const file = e.dataTransfer.files[0]
+    if (file) processFile(file)
   }
 
   async function handleSave() {
@@ -63,14 +95,30 @@ export function ShotAnalyzer({ userId, knowledgeScore = 0, onSaved }: ShotAnalyz
       {/* Upload drop zone */}
       <div
         onClick={() => fileRef.current?.click()}
-        className="border-2 border-dashed border-black/12 rounded-lg p-8 text-center cursor-pointer hover:border-ryp-green transition-colors group"
+        onDragOver={handleDragOver}
+        onDragEnter={handleDragEnter}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        className={`border-2 border-dashed rounded-lg p-10 text-center cursor-pointer transition-all select-none ${
+          dragging
+            ? 'border-ryp-green bg-ryp-green-tint scale-[1.01]'
+            : 'border-black/12 hover:border-ryp-green hover:bg-ryp-off-white'
+        }`}
       >
         <input ref={fileRef} type="file" accept=".csv" className="hidden" onChange={handleFile} />
-        <p className="text-2xl mb-2">⛳</p>
-        <p className="font-sans font-medium text-ryp-black text-sm">
-          {fileName || 'Upload your GSPro export (.csv)'}
+        <p className={`text-3xl mb-3 transition-transform ${dragging ? 'scale-125' : ''}`}>
+          {dragging ? '📂' : fileName ? '✅' : '⛳'}
         </p>
-        <p className="text-xs text-ryp-mid mt-1">Click to browse</p>
+        <p className="font-sans font-medium text-ryp-black text-sm">
+          {dragging
+            ? 'Drop it!'
+            : fileName
+            ? fileName
+            : 'Drop your GSPro export here'}
+        </p>
+        <p className="text-xs text-ryp-mid mt-1">
+          {dragging ? '' : 'or click to browse  ·  .csv files only'}
+        </p>
       </div>
 
       {error && (
