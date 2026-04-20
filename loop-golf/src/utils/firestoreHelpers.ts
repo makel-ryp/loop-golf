@@ -250,3 +250,19 @@ export const saveSession = async (
 
   return sessionId;
 };
+
+// ── Module Progress ────────────────────────────────────────────────────────
+
+import type { ModuleProgress } from '../types/modules'
+
+export const saveModuleProgress = (userId: string, progress: ModuleProgress) =>
+  setDoc(
+    doc(db, 'users', userId, 'moduleProgress', progress.moduleId),
+    { ...progress, lastAttemptAt: progress.lastAttemptAt ?? serverTimestamp() },
+    { merge: true }
+  )
+
+export const getAllModuleProgress = async (userId: string): Promise<ModuleProgress[]> => {
+  const snap = await getDocs(collection(db, 'users', userId, 'moduleProgress'))
+  return snap.docs.map((d) => d.data() as ModuleProgress)
+}

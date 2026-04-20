@@ -15,6 +15,7 @@ import Practice from './pages/Practice'
 import Play from './pages/Play'
 import Chat from './pages/Chat'
 import Profile from './pages/Profile'
+import ModuleQuiz from './pages/ModuleQuiz'
 
 export default function App() {
   return (
@@ -30,7 +31,8 @@ export default function App() {
 
           {/* Main app — tabbed layout */}
           <Route element={<ProtectedRoute><UserDataProvider><AppLayout /></UserDataProvider></ProtectedRoute>}>
-            <Route path="/learn"     element={<Learn />} />
+            <Route path="/learn"                    element={<Learn />} />
+            <Route path="/learn/module/:id"        element={<ModuleQuiz />} />
             <Route path="/glossary"  element={<Glossary />} />
             <Route path="/practice"  element={<Practice />} />
             <Route path="/play"      element={<Play />} />
