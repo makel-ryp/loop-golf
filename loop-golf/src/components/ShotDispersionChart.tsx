@@ -198,47 +198,6 @@ export function ShotDispersionChart({ shots }: { shots: ShotRecord[] }) {
           </text>
         ))}
 
-        {/* Legend — bottom-left, 3 columns */}
-        {(() => {
-          const cols     = 3
-          const rowH     = 10
-          const colW     = 30
-          const padX     = 5
-          const padY     = 5
-          const rows     = Math.ceil(clubsPresent.length / cols)
-          const boxW     = cols * colW + padX * 2
-          const boxH     = rows * rowH + padY * 2
-          const bx       = PAD.left + 2
-          const by       = PAD.top + CH - boxH - 2
-
-          return (
-            <g>
-              <rect
-                x={bx} y={by} width={boxW} height={boxH}
-                rx="3" fill="rgba(0,0,0,0.55)"
-              />
-              {clubsPresent.map((club, i) => {
-                const col  = i % cols
-                const row  = Math.floor(i / cols)
-                const x    = bx + padX + col * colW
-                const y    = by + padY + row * rowH + 6
-                const color = CLUB_COLORS[club] ?? '#fff'
-                return (
-                  <g key={`leg-${club}`}>
-                    <circle cx={x + 3} cy={y - 2} r="2.5" fill={color} />
-                    <text
-                      x={x + 8} y={y}
-                      fill="rgba(255,255,255,0.75)"
-                      fontSize="6.5" fontFamily="DM Sans, sans-serif"
-                    >
-                      {CLUB_ABBREV[club] ?? club}
-                    </text>
-                  </g>
-                )
-              })}
-            </g>
-          )
-        })()}
       </svg>
 
       {/* Vertical legend — one row per club present */}
