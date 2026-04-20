@@ -1,5 +1,7 @@
 import { useState, useEffect, type FormEvent } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { logOut } from '../utils/authHelpers'
 import { getProfile, saveProfile, getLatestMetrics, getSessions, type UserProfile, type GolfGoal } from '../utils/firestoreHelpers'
 
 const GOALS: { value: GolfGoal; label: string }[] = [
@@ -14,6 +16,7 @@ const GOALS: { value: GolfGoal; label: string }[] = [
 
 export default function Profile() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [loading, setLoading]   = useState(true)
   const [saving, setSaving]     = useState(false)
   const [saved, setSaved]       = useState(false)
@@ -296,6 +299,16 @@ export default function Profile() {
           </section>
         )
       })()}
+
+      {/* ── Sign Out ── */}
+      <section>
+        <button
+          onClick={async () => { await logOut(); navigate('/') }}
+          className="w-full py-3 border border-black/10 rounded-lg text-sm font-medium text-ryp-mid hover:border-red-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+        >
+          Sign out
+        </button>
+      </section>
 
       {/* ── Upload History ── */}
       <section>
