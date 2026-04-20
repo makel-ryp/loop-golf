@@ -1,8 +1,9 @@
 import { useRef, useState } from 'react'
-import { parseGSProCSV } from '../utils/csvParser'
+import { parseGSProCSV, type ShotRecord } from '../utils/csvParser'
 import { analyzeShots, getSevenIronCarry, type ClubSummary } from '../utils/shotAnalyzer'
 import { calcReadiness, readinessLabel, recommendCourseLength } from '../utils/scoringEngine'
 import { saveSession } from '../utils/firestoreHelpers'
+import { ShotDispersionChart } from './ShotDispersionChart'
 
 interface ShotAnalyzerProps {
   userId: string
@@ -12,6 +13,7 @@ interface ShotAnalyzerProps {
 
 export function ShotAnalyzer({ userId, knowledgeScore = 0, onSaved }: ShotAnalyzerProps) {
   const fileRef  = useRef<HTMLInputElement>(null)
+  const [shots, setShots]         = useState<ShotRecord[]>([])
   const [summaries, setSummaries] = useState<ClubSummary[]>([])
   const [fileName, setFileName]   = useState('')
   const [error, setError]         = useState('')
@@ -32,8 +34,9 @@ export function ShotAnalyzer({ userId, knowledgeScore = 0, onSaved }: ShotAnalyz
     setSavedId(null)
     setFileName(file.name)
     try {
-      const shots = await parseGSProCSV(file)
-      setSummaries(analyzeShots(shots))
+      const parsed = await parseGSProCSV(file)
+      setShots(parsed)
+      setSummaries(analyzeShots(parsed))
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to parse file.')
       setSummaries([])
@@ -124,6 +127,16 @@ export function ShotAnalyzer({ userId, knowledgeScore = 0, onSaved }: ShotAnalyz
       {error && (
         <div className="px-4 py-3 bg-red-50 border border-red-200 rounded text-sm text-red-700">
           {error}
+        </div>
+      )}
+
+      {/* Shot dispersion chart */}
+      {shots.length > 0 && (
+        <div>
+          <p className="text-[11px] font-medium tracking-widest uppercase text-ryp-mid mb-2">
+            Shot Dispersion
+          </p>
+          <ShotDispersionChart shots={shots} />
         </div>
       )}
 
