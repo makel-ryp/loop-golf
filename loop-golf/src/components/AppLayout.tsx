@@ -38,6 +38,21 @@ const tabs = [
     ),
   },
   {
+    to: '/chat',
+    label: 'Coach',
+    icon: (active: boolean) => (
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+        <path
+          d="M4 5a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2H8l-4 3V5z"
+          stroke={active ? '#00AF51' : '#888'}
+          strokeWidth="1.75"
+          strokeLinejoin="round"
+          fill={active ? 'rgba(0,175,81,0.12)' : 'none'}
+        />
+      </svg>
+    ),
+  },
+  {
     to: '/profile',
     label: 'Profile',
     icon: (active: boolean) => (

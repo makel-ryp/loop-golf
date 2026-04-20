@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
+import { UserDataProvider } from './context/UserDataContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import AppLayout from './components/AppLayout'
 import Landing from './pages/Landing'
@@ -12,6 +13,7 @@ import Learn from './pages/Learn'
 import Glossary from './pages/Glossary'
 import Practice from './pages/Practice'
 import Play from './pages/Play'
+import Chat from './pages/Chat'
 import Profile from './pages/Profile'
 
 export default function App() {
@@ -27,11 +29,12 @@ export default function App() {
           <Route path="/quiz"            element={<ProtectedRoute><Quiz /></ProtectedRoute>} />
 
           {/* Main app — tabbed layout */}
-          <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+          <Route element={<ProtectedRoute><UserDataProvider><AppLayout /></UserDataProvider></ProtectedRoute>}>
             <Route path="/learn"     element={<Learn />} />
             <Route path="/glossary"  element={<Glossary />} />
             <Route path="/practice"  element={<Practice />} />
             <Route path="/play"      element={<Play />} />
+            <Route path="/chat"      element={<Chat />} />
             <Route path="/profile"   element={<Profile />} />
           </Route>
 

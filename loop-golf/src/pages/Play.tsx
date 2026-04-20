@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'react'
-import { useAuth } from '../context/AuthContext'
-import { getQuizResult, getSessions } from '../utils/firestoreHelpers'
+import { useState } from 'react'
+import { useUserData } from '../context/UserDataContext'
 
 function getCourseRecommendation(sevenIronCarry: number | null) {
   if (sevenIronCarry === null) return null
@@ -21,21 +20,12 @@ const PRE_ROUND_CHECKLIST = [
 ]
 
 export default function Play() {
-  const { user } = useAuth()
-  const [golfIQ, setGolfIQ]               = useState<number | null>(null)
-  const [sevenIronCarry, setSevenIronCarry] = useState<number | null>(null)
-  const [checked, setChecked]             = useState<Set<number>>(new Set())
+  const { quiz, sevenIronCarry, readiness, loading } = useUserData()
+  const [checked, setChecked] = useState<Set<number>>(new Set())
 
-  useEffect(() => {
-    if (!user) return
-    getQuizResult(user.uid).then((r) => { if (r) setGolfIQ(r.golfIQ) })
-    getSessions(user.uid).then((sessions) => {
-      if (sessions.length > 0 && sessions[0].sevenIronCarry != null) {
-        setSevenIronCarry(sessions[0].sevenIronCarry)
-      }
-    })
-  }, [user])
+  const golfIQ = quiz?.golfIQ ?? null
   const rec = getCourseRecommendation(sevenIronCarry)
+  const isCertified = golfIQ !== null && golfIQ >= 40
 
   function toggleCheck(i: number) {
     setChecked((prev) => {
@@ -44,8 +34,6 @@ export default function Play() {
       return next
     })
   }
-
-  const isCertified = golfIQ !== null && golfIQ >= 40
 
   return (
     <div className="px-5 pt-10 pb-4 max-w-lg mx-auto">
@@ -78,20 +66,44 @@ export default function Play() {
         </div>
       </div>
 
+      {/* Readiness breakdown */}
+      {readiness && (
+        <div className="bg-white border border-black/8 rounded-2xl px-5 py-5 mb-5">
+          <p className="text-[10px] font-medium tracking-widest uppercase text-ryp-mid mb-4">Readiness breakdown</p>
+          {([
+            ['Distance', readiness.distanceReadiness],
+            ['Consistency', readiness.consistencyReadiness],
+            ['Knowledge', readiness.knowledgeReadiness],
+          ] as [string, number][]).map(([label, score]) => (
+            <div key={label} className="mb-3 last:mb-0">
+              <div className="flex justify-between mb-1">
+                <span className="text-xs text-ryp-black">{label}</span>
+                <span className="text-xs text-ryp-mid">{score}%</span>
+              </div>
+              <div className="h-1.5 bg-black/8 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-ryp-green rounded-full transition-all"
+                  style={{ width: `${Math.min(score, 100)}%` }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Course recommendation */}
       <div className="bg-white border border-black/8 rounded-2xl px-5 py-5 mb-5">
         <p className="text-[10px] font-medium tracking-widest uppercase text-ryp-mid mb-3">Recommended course</p>
-        {rec ? (
+        {loading ? (
+          <div className="h-1.5 bg-black/8 rounded-full animate-pulse" />
+        ) : rec ? (
           <>
             <p className="font-sans font-semibold text-base text-ryp-black mb-0.5">{rec.type}</p>
             <p className="text-sm text-ryp-green font-medium mb-2">{rec.yardage}</p>
             <p className="text-xs text-ryp-mid leading-relaxed">{rec.desc}</p>
           </>
         ) : (
-          <div className="flex flex-col gap-2">
-            <p className="text-sm text-ryp-mid">Upload a Practice session to get your course recommendation based on 7-iron carry distance.</p>
-            <div className="h-1.5 bg-black/8 rounded-full" />
-          </div>
+          <p className="text-sm text-ryp-mid">Upload a Practice session to get your course recommendation based on 7-iron carry distance.</p>
         )}
       </div>
 
