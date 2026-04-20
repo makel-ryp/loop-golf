@@ -225,39 +225,77 @@ export default function Profile() {
         </div>
       </section>
 
-      {/* ── Club Data ── */}
-      {clubRows.length > 0 && (
-        <section>
-          <p className="text-[11px] font-medium tracking-widests uppercase text-ryp-mid mb-3">Club Data</p>
-          <div className="overflow-x-auto rounded-lg border border-black/8">
-            <table className="w-full text-sm">
-              <thead className="bg-ryp-off-white text-ryp-mid text-[11px] uppercase tracking-wider">
-                <tr>
-                  <th className="px-4 py-3 text-left">Club</th>
-                  <th className="px-4 py-3 text-right">Carry</th>
-                  <th className="px-4 py-3 text-right">Ball Spd</th>
-                  <th className="px-4 py-3 text-right">Miss</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-black/6">
-                {clubRows.map(m => (
-                  <tr key={m.clubName} className="hover:bg-ryp-off-white/50">
-                    <td className="px-4 py-3">
-                      <span className="font-medium text-ryp-black">{m.displayName}</span>
-                      <span className="ml-1.5 text-[11px] text-ryp-mid">{m.clubName}</span>
-                    </td>
-                    <td className="px-4 py-3 text-right font-medium text-ryp-black">{m.carryDistance} yds</td>
-                    <td className="px-4 py-3 text-right text-ryp-mid">{m.ballSpeed} mph</td>
-                    <td className="px-4 py-3 text-right text-ryp-mid">
-                      {m.missDirection === 'straight' ? '—' : `${m.avgMissYards}y ${m.missDirection}`}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      )}
+      {/* ── My Bag Analysis ── */}
+      {clubRows.length > 0 && (() => {
+        const maxCarry = Math.max(...clubRows.map(m => m.carryDistance))
+        return (
+          <section>
+            <p className="text-[11px] font-medium tracking-widest uppercase text-ryp-mid mb-3">My Bag</p>
+            <div className="bg-white border border-black/8 rounded-lg divide-y divide-black/6">
+              {clubRows.map(m => {
+                const barPct = (m.carryDistance / maxCarry) * 100
+                const missLeft  = m.missDirection === 'left'
+                const missRight = m.missDirection === 'right'
+                const missAmt   = m.avgMissYards
+                // centre point for the miss indicator bar
+                // left of centre = left miss, right = right miss
+                return (
+                  <div key={m.clubName} className="px-4 py-3.5">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-ryp-black">{m.displayName}</span>
+                        <span className="text-[11px] text-ryp-mid">{m.clubName}</span>
+                      </div>
+                      <span className="text-sm font-medium text-ryp-black tabular-nums">{m.carryDistance} yds</span>
+                    </div>
+
+                    {/* Carry distance bar */}
+                    <div className="flex-1 bg-black/6 rounded-full h-2 overflow-hidden mb-2">
+                      <div
+                        className="h-full bg-ryp-green rounded-full transition-all"
+                        style={{ width: `${barPct}%` }}
+                      />
+                    </div>
+
+                    {/* Miss direction indicator */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-ryp-mid w-4 text-right">L</span>
+                      <div className="relative flex-1 h-1.5 bg-black/6 rounded-full overflow-hidden">
+                        {/* centre line */}
+                        <div className="absolute left-1/2 top-0 w-px h-full bg-black/20" />
+                        {missLeft && (
+                          <div
+                            className="absolute top-0 h-full bg-amber-400 rounded-full"
+                            style={{
+                              right: '50%',
+                              width: `${Math.min((missAmt / 30) * 50, 50)}%`,
+                            }}
+                          />
+                        )}
+                        {missRight && (
+                          <div
+                            className="absolute top-0 h-full bg-amber-400 rounded-full"
+                            style={{
+                              left: '50%',
+                              width: `${Math.min((missAmt / 30) * 50, 50)}%`,
+                            }}
+                          />
+                        )}
+                      </div>
+                      <span className="text-[10px] text-ryp-mid w-4">R</span>
+                      <span className="text-[10px] text-ryp-mid w-16 text-right tabular-nums">
+                        {m.missDirection === 'straight'
+                          ? 'straight'
+                          : `${missAmt}y ${m.missDirection}`}
+                      </span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </section>
+        )
+      })()}
 
       {/* ── Upload History ── */}
       <section>
