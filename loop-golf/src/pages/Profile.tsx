@@ -303,7 +303,7 @@ export default function Profile() {
       {/* ── Sign Out ── */}
       <section>
         <button
-          onClick={async () => { await logOut(); navigate('/') }}
+          onClick={async () => { try { await logOut() } finally { navigate('/') } }}
           className="w-full py-3 border border-black/10 rounded-lg text-sm font-medium text-ryp-mid hover:border-red-300 hover:text-red-500 hover:bg-red-50 transition-colors"
         >
           Sign out

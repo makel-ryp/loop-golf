@@ -56,7 +56,10 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
       const carry = sessions.find(s => s.sevenIronCarry != null)?.sevenIronCarry ?? null
       setSevenIronCarry(carry)
       setLoading(false)
-    }).catch(() => setLoading(false))
+    }).catch((err) => {
+      console.error('Failed to load user data:', err)
+      setLoading(false)
+    })
   }, [user])
 
   useEffect(() => { load() }, [load])

@@ -18,7 +18,7 @@ export default function Signup() {
     try {
       const result = await signInWithGoogle()
       const info = getAdditionalUserInfo(result)
-      navigate(info?.isNewUser ? '/onboarding' : '/dashboard')
+      navigate(info?.isNewUser ? '/onboarding' : '/learn')
     } catch (err: unknown) {
       console.error('Google signup error:', err)
       const msg = err instanceof Error ? err.message : 'Google sign-in failed'
