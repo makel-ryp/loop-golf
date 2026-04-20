@@ -234,9 +234,9 @@ export default function Profile() {
             <div className="bg-white border border-black/8 rounded-lg divide-y divide-black/6">
               {clubRows.map(m => {
                 const barPct = (m.carryDistance / maxCarry) * 100
-                const missLeft  = m.missDirection === 'left'
-                const missRight = m.missDirection === 'right'
-                const missAmt   = m.avgMissYards
+                const missLeft  = m.avgOffline < 0
+                const missRight = m.avgOffline > 0
+                const missAmt   = Math.abs(m.avgOffline)
                 // centre point for the miss indicator bar
                 // left of centre = left miss, right = right miss
                 return (
@@ -284,9 +284,9 @@ export default function Profile() {
                       </div>
                       <span className="text-[10px] text-ryp-mid w-4">R</span>
                       <span className="text-[10px] text-ryp-mid w-16 text-right tabular-nums">
-                        {m.missDirection === 'straight'
+                        {missAmt < 0.5
                           ? 'straight'
-                          : `${missAmt}y ${m.missDirection}`}
+                          : `${Math.round(missAmt * 10) / 10}y ${missLeft ? 'left' : 'right'}`}
                       </span>
                     </div>
                   </div>

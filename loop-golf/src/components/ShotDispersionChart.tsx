@@ -243,7 +243,7 @@ export function ShotDispersionChart({ shots }: { shots: ShotRecord[] }) {
 
       {/* Vertical legend — one row per club present */}
       <div className="bg-[#080d0a] px-4 pb-4 border-t border-white/5">
-        <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 pt-3">
+        <div className="grid grid-cols-1 gap-y-1.5 pt-3">
           {clubsPresent.map(club => (
             <div key={club} className="flex items-center gap-2">
               <span

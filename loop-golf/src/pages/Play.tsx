@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { getQuizResult } from '../utils/firestoreHelpers'
+import { getQuizResult, getSessions } from '../utils/firestoreHelpers'
 
 function getCourseRecommendation(sevenIronCarry: number | null) {
   if (sevenIronCarry === null) return null
@@ -22,16 +22,19 @@ const PRE_ROUND_CHECKLIST = [
 
 export default function Play() {
   const { user } = useAuth()
-  const [golfIQ, setGolfIQ] = useState<number | null>(null)
-  const [checked, setChecked] = useState<Set<number>>(new Set())
+  const [golfIQ, setGolfIQ]               = useState<number | null>(null)
+  const [sevenIronCarry, setSevenIronCarry] = useState<number | null>(null)
+  const [checked, setChecked]             = useState<Set<number>>(new Set())
 
   useEffect(() => {
     if (!user) return
     getQuizResult(user.uid).then((r) => { if (r) setGolfIQ(r.golfIQ) })
+    getSessions(user.uid).then((sessions) => {
+      if (sessions.length > 0 && sessions[0].sevenIronCarry != null) {
+        setSevenIronCarry(sessions[0].sevenIronCarry)
+      }
+    })
   }, [user])
-
-  // Placeholder 7-iron — will come from latest Practice session
-  const sevenIronCarry: number | null = null
   const rec = getCourseRecommendation(sevenIronCarry)
 
   function toggleCheck(i: number) {
