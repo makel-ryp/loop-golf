@@ -37,6 +37,16 @@ const tabs = [
       </svg>
     ),
   },
+  {
+    to: '/profile',
+    label: 'Profile',
+    icon: (active: boolean) => (
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+        <circle cx="11" cy="8" r="3.5" stroke={active ? '#00AF51' : '#888'} strokeWidth="1.75" />
+        <path d="M3.5 19c0-4.142 3.358-7.5 7.5-7.5s7.5 3.358 7.5 7.5" stroke={active ? '#00AF51' : '#888'} strokeWidth="1.75" strokeLinecap="round" />
+      </svg>
+    ),
+  },
 ]
 
 export default function AppLayout() {

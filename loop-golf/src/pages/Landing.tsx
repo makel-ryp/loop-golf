@@ -62,10 +62,6 @@ export default function Landing() {
             <span className="text-[10px] tracking-widest uppercase text-[#aaa]">By</span>
             <span className="text-sm font-medium text-ryp-black">Ryp Golf</span>
           </div>
-          <div className="flex flex-col gap-1">
-            <span className="text-[10px] tracking-widest uppercase text-[#aaa]">Version</span>
-            <span className="text-sm font-medium text-ryp-green">#00AF51</span>
-          </div>
         </div>
       </div>
     </div>

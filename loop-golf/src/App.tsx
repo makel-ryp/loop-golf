@@ -12,6 +12,7 @@ import Learn from './pages/Learn'
 import Glossary from './pages/Glossary'
 import Practice from './pages/Practice'
 import Play from './pages/Play'
+import Profile from './pages/Profile'
 
 export default function App() {
   return (
@@ -31,6 +32,7 @@ export default function App() {
             <Route path="/glossary"  element={<Glossary />} />
             <Route path="/practice"  element={<Practice />} />
             <Route path="/play"      element={<Play />} />
+            <Route path="/profile"   element={<Profile />} />
           </Route>
 
           {/* Legacy redirects */}

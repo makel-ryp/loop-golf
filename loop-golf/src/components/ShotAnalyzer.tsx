@@ -140,8 +140,8 @@ export function ShotAnalyzer({ userId, knowledgeScore = 0, onSaved }: ShotAnalyz
         </div>
       )}
 
-      {/* Readiness + course rec cards */}
-      {readiness && courseRec && (
+      {/* Readiness + course rec cards — render independently */}
+      {readiness && (
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-ryp-green-tint border border-ryp-green/20 rounded-lg p-4">
             <p className="text-[11px] font-medium tracking-widest uppercase text-ryp-mid mb-1">
@@ -172,15 +172,23 @@ export function ShotAnalyzer({ userId, knowledgeScore = 0, onSaved }: ShotAnalyz
             <p className="text-[11px] font-medium tracking-widest uppercase text-ryp-mid mb-1">
               Recommended Tees
             </p>
-            <p className="font-serif text-xl text-ryp-black leading-tight">
-              {courseRec.teeLabel}
-            </p>
-            <p className="text-xs text-ryp-mid mt-1">
-              {courseRec.minYards.toLocaleString()}–{courseRec.maxYards.toLocaleString()} yds
-            </p>
-            <p className="text-xs text-ryp-mid mt-2 leading-relaxed">
-              {courseRec.rationale}
-            </p>
+            {courseRec ? (
+              <>
+                <p className="font-serif text-xl text-ryp-black leading-tight">
+                  {courseRec.teeLabel}
+                </p>
+                <p className="text-xs text-ryp-mid mt-1">
+                  {courseRec.minYards.toLocaleString()}–{courseRec.maxYards.toLocaleString()} yds
+                </p>
+                <p className="text-xs text-ryp-mid mt-2 leading-relaxed">
+                  {courseRec.rationale}
+                </p>
+              </>
+            ) : (
+              <p className="text-xs text-ryp-mid mt-1">
+                Upload a session with at least one iron to get a course recommendation.
+              </p>
+            )}
           </div>
         </div>
       )}

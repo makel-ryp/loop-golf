@@ -10,6 +10,14 @@ const CLUB_COLORS: Record<string, string> = {
   SW: '#FB7185', LW: '#FDE68A',
 }
 
+const CLUB_DISPLAY: Record<string, string> = {
+  DR: 'Driver', W3: '3 Wood', W5: '5 Wood',
+  H3: '3 Hybrid', H4: '4 Hybrid', H5: '5 Hybrid',
+  I3: '3 Iron', I4: '4 Iron', I5: '5 Iron',
+  I6: '6 Iron', I7: '7 Iron', I8: '8 Iron', I9: '9 Iron',
+  PW: 'Pitching Wedge', GW: 'Gap Wedge', SW: 'Sand Wedge', LW: 'Lob Wedge',
+}
+
 const CLUB_ABBREV: Record<string, string> = {
   DR: 'DR', W3: '3W', W5: '5W',
   H3: '3H', H4: '4H', H5: '5H',
@@ -232,6 +240,23 @@ export function ShotDispersionChart({ shots }: { shots: ShotRecord[] }) {
           )
         })()}
       </svg>
+
+      {/* Vertical legend — one row per club present */}
+      <div className="bg-[#080d0a] px-4 pb-4 border-t border-white/5">
+        <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 pt-3">
+          {clubsPresent.map(club => (
+            <div key={club} className="flex items-center gap-2">
+              <span
+                className="w-2.5 h-2.5 rounded-full shrink-0"
+                style={{ background: CLUB_COLORS[club] ?? '#fff' }}
+              />
+              <span className="text-[11px] text-white/60 font-sans">
+                {CLUB_DISPLAY[club] ?? club}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   )
 }

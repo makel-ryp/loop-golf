@@ -195,6 +195,23 @@ export const getQuizResult = async (userId: string): Promise<QuizResult | null> 
 
 import type { ClubSummary } from "./shotAnalyzer";
 
+export interface SessionSummary {
+  sessionId: string;
+  sevenIronCarry: number | null;
+  clubCount: number;
+  uploadDate: { toDate?: () => Date } | null;
+}
+
+export const getSessions = async (userId: string): Promise<SessionSummary[]> => {
+  const q = query(
+    collection(db, "users", userId, "sessions"),
+    orderBy("uploadDate", "desc"),
+    limit(20)
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => d.data() as SessionSummary);
+};
+
 export const saveSession = async (
   userId: string,
   summaries: ClubSummary[],
