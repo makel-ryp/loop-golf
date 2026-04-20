@@ -1,7 +1,7 @@
 import { useState, useEffect, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { logOut } from '../utils/authHelpers'
+import { logOut, changePassword } from '../utils/authHelpers'
 import { getProfile, saveProfile, getLatestMetrics, getSessions, type UserProfile, type GolfGoal } from '../utils/firestoreHelpers'
 
 const GOALS: { value: GolfGoal; label: string }[] = [
@@ -18,7 +18,12 @@ export default function Profile() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const [loading, setLoading]   = useState(true)
-  const [saving, setSaving]     = useState(false)
+  const [saving, setSaving]         = useState(false)
+  const [changingPw, setChangingPw] = useState(false)
+  const [currentPw, setCurrentPw]   = useState('')
+  const [newPw, setNewPw]           = useState('')
+  const [pwError, setPwError]       = useState('')
+  const [pwSuccess, setPwSuccess]   = useState(false)
   const [saved, setSaved]       = useState(false)
   const [error, setError]       = useState('')
 
@@ -300,8 +305,61 @@ export default function Profile() {
         )
       })()}
 
-      {/* ── Sign Out ── */}
-      <section>
+      {/* ── Account ── */}
+      <section className="flex flex-col gap-3">
+        {/* Change password */}
+        <div className="bg-white border border-black/8 rounded-lg overflow-hidden">
+          <button
+            onClick={() => { setChangingPw(v => !v); setPwError(''); setPwSuccess(false) }}
+            className="w-full flex items-center justify-between px-5 py-3.5 text-sm font-medium text-ryp-black hover:bg-black/[0.02] transition-colors"
+          >
+            Change password
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className={`opacity-40 transition-transform ${changingPw ? 'rotate-90' : ''}`}>
+              <path d="M5 3l4 4-4 4" stroke="#111" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+
+          {changingPw && (
+            <div className="px-5 pb-4 border-t border-black/6">
+              {pwError && <p className="mt-3 text-xs text-red-600">{pwError}</p>}
+              {pwSuccess && <p className="mt-3 text-xs text-ryp-green">Password updated.</p>}
+              <div className="flex flex-col gap-2.5 mt-3">
+                <input
+                  type="password"
+                  placeholder="Current password"
+                  value={currentPw}
+                  onChange={e => setCurrentPw(e.target.value)}
+                  className="px-3.5 py-2.5 text-sm border border-black/12 rounded bg-ryp-off-white focus:outline-none focus:border-ryp-green focus:ring-1 focus:ring-ryp-green"
+                />
+                <input
+                  type="password"
+                  placeholder="New password (6+ characters)"
+                  value={newPw}
+                  onChange={e => setNewPw(e.target.value)}
+                  className="px-3.5 py-2.5 text-sm border border-black/12 rounded bg-ryp-off-white focus:outline-none focus:border-ryp-green focus:ring-1 focus:ring-ryp-green"
+                />
+                <button
+                  onClick={async () => {
+                    setPwError(''); setPwSuccess(false)
+                    if (newPw.length < 6) { setPwError('New password must be at least 6 characters.'); return }
+                    try {
+                      await changePassword(currentPw, newPw)
+                      setPwSuccess(true); setCurrentPw(''); setNewPw('')
+                      setTimeout(() => setChangingPw(false), 1500)
+                    } catch {
+                      setPwError('Incorrect current password. Please try again.')
+                    }
+                  }}
+                  className="py-2.5 bg-ryp-black text-white text-sm font-medium rounded hover:opacity-90 transition-opacity"
+                >
+                  Update password
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Sign out */}
         <button
           onClick={async () => { try { await logOut() } finally { navigate('/') } }}
           className="w-full py-3 border border-black/10 rounded-lg text-sm font-medium text-ryp-mid hover:border-red-300 hover:text-red-500 hover:bg-red-50 transition-colors"
