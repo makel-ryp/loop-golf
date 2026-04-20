@@ -86,7 +86,8 @@ export default function Onboarding() {
         goals,
       })
       navigate('/quiz')
-    } catch {
+    } catch (err) {
+      console.error('Save profile error:', err)
       setError('Failed to save profile. Try again.')
     } finally {
       setSaving(false)

@@ -69,8 +69,8 @@ export default function Quiz() {
           <div className="flex justify-center mb-8">
             <LoopLogo width={100} />
           </div>
-          <h1 className="font-serif text-4xl text-ryp-black mb-3">
-            Golf IQ <em className="text-ryp-green">Check</em>
+          <h1 className="font-sans font-semibold text-4xl text-ryp-black mb-3 tracking-tight">
+            Golf IQ <span className="text-ryp-green">Check</span>
           </h1>
           <p className="text-sm text-ryp-mid leading-relaxed mb-2 max-w-sm mx-auto">
             20 quick questions. No wrong answers — honest ones just give you better recommendations.

@@ -1,41 +1,40 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
+import AppLayout from './components/AppLayout'
 import Landing from './pages/Landing'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 import ForgotPassword from './pages/ForgotPassword'
 import Onboarding from './pages/Onboarding'
 import Quiz from './pages/Quiz'
-
-// Placeholder — will be replaced when each module is built
-function ComingSoon({ label }: { label: string }) {
-  return (
-    <div className="min-h-screen bg-ryp-off-white flex items-center justify-center">
-      <p className="font-sans text-ryp-mid text-sm">{label} — coming soon</p>
-    </div>
-  )
-}
+import Learn from './pages/Learn'
+import Practice from './pages/Practice'
+import Play from './pages/Play'
 
 export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          <Route path="/"            element={<Landing />} />
-          <Route path="/login"       element={<Login />} />
+          <Route path="/"                element={<Landing />} />
+          <Route path="/login"           element={<Login />} />
           <Route path="/signup"          element={<Signup />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/onboarding"      element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+          <Route path="/quiz"            element={<ProtectedRoute><Quiz /></ProtectedRoute>} />
 
-          {/* Protected — placeholders until modules are built */}
-          <Route path="/onboarding"  element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
-          <Route path="/quiz"        element={<ProtectedRoute><Quiz /></ProtectedRoute>} />
-          <Route path="/learn"       element={<ProtectedRoute><ComingSoon label="Learn" /></ProtectedRoute>} />
-          <Route path="/practice"    element={<ProtectedRoute><ComingSoon label="Practice" /></ProtectedRoute>} />
-          <Route path="/plan"        element={<ProtectedRoute><ComingSoon label="Plan" /></ProtectedRoute>} />
-          <Route path="/dashboard"   element={<ProtectedRoute><ComingSoon label="Dashboard" /></ProtectedRoute>} />
+          {/* Main app — tabbed layout */}
+          <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+            <Route path="/learn"    element={<Learn />} />
+            <Route path="/practice" element={<Practice />} />
+            <Route path="/play"     element={<Play />} />
+          </Route>
 
-          <Route path="*" element={<Navigate to="/" replace />} />
+          {/* Legacy redirects */}
+          <Route path="/dashboard" element={<Navigate to="/learn" replace />} />
+          <Route path="/plan"      element={<Navigate to="/play" replace />} />
+          <Route path="*"          element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
