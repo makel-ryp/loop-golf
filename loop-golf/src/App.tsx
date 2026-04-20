@@ -7,6 +7,7 @@ import Signup from './pages/Signup'
 import ForgotPassword from './pages/ForgotPassword'
 import Onboarding from './pages/Onboarding'
 import Quiz from './pages/Quiz'
+import Practice from './pages/Practice'
 
 // Placeholder — will be replaced when each module is built
 function ComingSoon({ label }: { label: string }) {
@@ -31,7 +32,7 @@ export default function App() {
           <Route path="/onboarding"  element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
           <Route path="/quiz"        element={<ProtectedRoute><Quiz /></ProtectedRoute>} />
           <Route path="/learn"       element={<ProtectedRoute><ComingSoon label="Learn" /></ProtectedRoute>} />
-          <Route path="/practice"    element={<ProtectedRoute><ComingSoon label="Practice" /></ProtectedRoute>} />
+          <Route path="/practice"    element={<ProtectedRoute><Practice /></ProtectedRoute>} />
           <Route path="/plan"        element={<ProtectedRoute><ComingSoon label="Plan" /></ProtectedRoute>} />
           <Route path="/dashboard"   element={<ProtectedRoute><ComingSoon label="Dashboard" /></ProtectedRoute>} />
 

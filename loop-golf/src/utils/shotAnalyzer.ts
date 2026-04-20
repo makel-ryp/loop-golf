@@ -5,6 +5,7 @@ export interface ClubSummary {
   displayName: string
   shots: number
   avgCarry: number
+  carryStdDev: number       // carry consistency (lower = more consistent)
   avgOffline: number        // negative = left, positive = right
   avgMissYards: number      // absolute value
   missDirection: 'left' | 'right' | 'straight'
@@ -30,11 +31,17 @@ function avg(nums: number[]) {
   return nums.reduce((a, b) => a + b, 0) / nums.length
 }
 
+function stdDev(nums: number[]): number {
+  if (nums.length < 2) return 0
+  const mean = avg(nums)
+  return Math.sqrt(nums.reduce((sum, v) => sum + (v - mean) ** 2, 0) / nums.length)
+}
+
 function round1(n: number) {
   return Math.round(n * 10) / 10
 }
 
-export function analyzeSshots(shots: ShotRecord[]): ClubSummary[] {
+export function analyzeShots(shots: ShotRecord[]): ClubSummary[] {
   const grouped = new Map<string, ShotRecord[]>()
 
   for (const shot of shots) {
@@ -46,6 +53,7 @@ export function analyzeSshots(shots: ShotRecord[]): ClubSummary[] {
   const summaries: ClubSummary[] = []
 
   for (const [club, clubShots] of grouped.entries()) {
+    const carries    = clubShots.map((s) => s.carry)
     const avgOffline = avg(clubShots.map((s) => s.offline))
     const absOffline = Math.abs(avgOffline)
 
@@ -53,7 +61,8 @@ export function analyzeSshots(shots: ShotRecord[]): ClubSummary[] {
       club,
       displayName:    CLUB_DISPLAY[club] ?? club,
       shots:          clubShots.length,
-      avgCarry:       round1(avg(clubShots.map((s) => s.carry))),
+      avgCarry:       round1(avg(carries)),
+      carryStdDev:    round1(stdDev(carries)),
       avgOffline:     round1(avgOffline),
       avgMissYards:   round1(absOffline),
       missDirection:  absOffline < 3 ? 'straight' : avgOffline < 0 ? 'left' : 'right',
@@ -69,7 +78,10 @@ export function analyzeSshots(shots: ShotRecord[]): ClubSummary[] {
 }
 
 export function getSevenIronCarry(summaries: ClubSummary[]): number | null {
-  const iron = summaries.find((s) => s.club === 'I7')
-    ?? summaries.find((s) => ['I6','I8'].includes(s.club))
-  return iron ? iron.avgCarry : null
+  const FALLBACK = ['I7', 'I8', 'I6', 'I9', 'I5', 'PW']
+  for (const club of FALLBACK) {
+    const found = summaries.find((s) => s.club === club)
+    if (found) return found.avgCarry
+  }
+  return null
 }
